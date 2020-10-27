@@ -1,0 +1,30 @@
+{{ ansible_managed | comment }}
+
+database=file:{{ aide['config']['database'] }}
+database_out=file:{{ aide['config']['database_out'] }}
+gzip_dbout={{ "yes" if aide['config']['gzip_dbout'] else "no" }}
+
+verbose={{ aide['config']['verbose'] }}
+
+{% for report_url in aide['config']['report_urls'] %}
+report_url={{ report_url }}
+{% endfor %}
+
+# Group
+{% for definition in aide['config']['group_definitions'][aide['config']['distro_version']] %}
+{{ definition['name'] }} = {{ definition['expression'] }}
+{% endfor %}
+
+# Selections
+{% for selection in aide['config']['selections'][aide['config']['distro_version']] %}
+{{ selection['pattern'] }} {{ selection['group'] }}
+{% endfor %}
+
+{% if aide['no_nfs'] %}
+# Exclude NFS mounts
+{% for mount in ansible_facts['mounts'] %}
+{% if mount['fstype'] == 'nfs' %}
+!{{ mount['mount'] }}
+{% endif %}
+{% endfor %}
+{% endif %}

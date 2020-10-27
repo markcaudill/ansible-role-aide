@@ -1,0 +1,13 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  tasks:
+  - name: Gather the package facts
+    package_facts:
+      manager: auto
+  - name: CHECK aide PACKAGE STATUS
+    assert:
+      that: "{{ item }} in ansible_facts.packages"
+    loop: "{{ aide['packages'] }}"
