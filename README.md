@@ -3,31 +3,42 @@ AIDE
 
 This role configures a host to be regularly monitored by [AIDE](https://aide.github.io/).
 
+[![CI](https://github.com/markcaudill/ansible-role-aide/workflows/CI/badge.svg)](https://github.com/markcaudill/ansible-role-aide/actions?query=workflow%3ACI)
+
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+See (`defaults/main.yml`) for a complete listing of variables.
+
+- `aide['tags']`:  a list of the tags applied to each task in this role (default: `[aide]`)
+- `aide['packages']`: a list of packages installed (default: `[aide, crontabs]`)
+- `aide['no_nfs']`: whether or not to exclude the currently-known NFS mounts (default: `true`)
+- `aide['cron']`: the cron configuration to use (default is essentially `@weekly`, see `defaults/main.yml` for more detail)
+- `aide['database_init']`: whether or not to initialize the database if it doesn't already exist (default: `true`)
+- `aide['config']`: the variables used to generate the `aide.conf` file (see `defaults/main.yml` for more detail)
+
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+None
 
 Example Playbook
 ----------------
 
 Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
 
-    - hosts: servers
+    - hosts: all
+      become: yes
       roles:
-         - { role: username.rolename, x: 42 }
+         - { role: markcaudill.aide }
 
 License
 -------
 
-BSD
+MIT
 
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+Mark Caudill <mark@mrkc.me>
