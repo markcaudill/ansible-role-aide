@@ -38,5 +38,7 @@ verifier:
   name: ansible
 lint: |
   set -e
+  yamllint -v
   yamllint .
-  ansible-lint .
+  ansible-lint --version
+  ansible-lint -v .
