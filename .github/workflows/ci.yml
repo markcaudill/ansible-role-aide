@@ -24,9 +24,11 @@ jobs:
       - name: Install test dependencies.
         run: pip3 install molecule[docker] yamllint ansible-lint
 
+      - name: Debug
+        run: ls
+
       - name: Run Molecule tests.
         run: molecule test
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
-        working-directory: ansible-role-aide
