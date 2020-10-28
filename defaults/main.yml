@@ -2,8 +2,6 @@
 # defaults file for aide
 
 aide:
-  tags:
-    - aide
   packages:
     - aide
     - crontabs
@@ -31,7 +29,7 @@ aide:
       dest: /etc/aide.conf
       owner: root
       group: root
-      mode: 0644
+      mode: '0600'
       backup: true
       validate: "aide --config-check --config=%s"
     database: /var/lib/aide/aide.db.gz

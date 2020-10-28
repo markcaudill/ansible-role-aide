@@ -10,7 +10,6 @@ Role Variables
 
 See (`defaults/main.yml`) for a complete listing of variables.
 
-- `aide['tags']`:  a list of the tags applied to each task in this role (default: `[aide]`)
 - `aide['packages']`: a list of packages installed (default: `[aide, crontabs]`)
 - `aide['no_nfs']`: whether or not to exclude the currently-known NFS mounts (default: `true`)
 - `aide['cron']`: the cron configuration to use (default is essentially `@weekly`, see `defaults/main.yml` for more detail)
@@ -29,7 +28,7 @@ Example Playbook
     - hosts: all
       become: yes
       roles:
-         - { role: markcaudill.aide }
+         - { role: markcaudill.ansible_role_aide }
 
 License
 -------

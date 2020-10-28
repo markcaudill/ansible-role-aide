@@ -4,7 +4,7 @@
 - name: ENSURE PACKAGES ARE INSTALLED
   yum:
     name: "{{ aide['packages'] }}"
-  tags: aide['tags']
+  tags: aide
 
 - name: ENSURE CONFIGURATION FILE IS PRESENT AND UP TO DATE
   template:
@@ -14,15 +14,15 @@
     group: "{{ aide['config']['template']['group'] }}"
     mode: "{{ aide['config']['template']['mode'] }}"
     backup: "{{ aide['config']['template']['backup'] }}"
-    #validate: "{{ aide['config']['template']['validate'] }}"
-  tags: aide['tags']
+    validate: "{{ aide['config']['template']['validate'] }}"
+  tags: aide
 
-- name: ENSURE AIDE DATABASE IS INITIALIZED
-  shell: "aide --init && mv {{ aide['config']['database_out'] }} {{ aide['config']['database'] }}"
+- name: ENSURE INITIAL AIDE DATABASE IS INITIALIZED
+  shell: "aide --init -V0 && mv {{ aide['config']['database_out'] }} {{ aide['config']['database'] }}"
   args:
     creates: "{{ aide['config']['database'] }}"
   when: aide['database_init']
-  tags: aide['tags']
+  tags: aide
 
 - name: ENSURE AIDE IS SCHEDULED TO RUN REGULARLY
   cron:
@@ -37,4 +37,4 @@
     state: "{{ aide['cron']['state'] }}"
     user: "{{ aide['cron']['user'] }}"
     job: "{{ aide['cron']['job'] }}"
-  tags: aide['tags']
+  tags: aide
