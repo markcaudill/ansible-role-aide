@@ -39,3 +39,13 @@
   - name: VERIFY AIDE LOG EXISTS
     assert:
       that: stat_aide_log.stat.exists
+
+  - name: CHECK CRONTAB FOR JOB
+    command: grep -q "aide --check" /var/spool/cron/root
+    check_mode: no
+    ignore_errors: yes
+    changed_when: no
+    register: grep_aide_crontab
+  - name: VERIFY AIDE CRONTAB JOB EXISTS
+    assert:
+      that: grep_aide_crontab.rc == 0
