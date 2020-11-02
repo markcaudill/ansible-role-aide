@@ -10,12 +10,6 @@ Role Variables
 
 See (`defaults/main.yml`) for a complete listing of variables.
 
-- `aide['packages']`: a list of packages installed (default: `[aide, crontabs]`)
-- `aide['no_nfs']`: whether or not to exclude the currently-known NFS mounts (default: `true`)
-- `aide['cron']`: the cron configuration to use (default is essentially `@weekly`, see `defaults/main.yml` for more detail)
-- `aide['database_init']`: whether or not to initialize the database if it doesn't already exist (default: `true`)
-- `aide['config']`: the variables used to generate the `aide.conf` file (see `defaults/main.yml` for more detail)
-
 
 Dependencies
 ------------
@@ -28,7 +22,7 @@ Example Playbook
     - hosts: all
       become: yes
       roles:
-         - { role: markcaudill.ansible_role_aide }
+         - {role: markcaudill.ansible_role_aide}
 
 License
 -------

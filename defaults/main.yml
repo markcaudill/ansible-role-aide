@@ -1,362 +1,366 @@
 ---
 # defaults file for aide
 
-aide:
-  packages:
-    - aide
-    - crontabs
-  no_nfs: true
-  cron:
-    name: "AIDE Check"
-    minute: "*"
-    hour: "*"
-    day: "*"
-    month: "*"
-    weekday: "*"
-    special_time: weekly
-    disabled: false
-    state: present
-    user: root
-    job: aide --check
-  database_init: true
-  # These defaults aim to reproduce the default aide.conf deployed with the
-  # aide package.
-  config:
-    # There should be a matcthing list in group_definitions and selections.
-    distro_version: "rhel{{ ansible_facts['distribution_major_version'] }}"
-    template:
-      src: etc/aide.conf.j2
-      dest: /etc/aide.conf
-      owner: root
-      group: root
-      mode: '0600'
-      backup: true
-      validate: "aide --config-check --config=%s"
-    database: /var/lib/aide/aide.db.gz
-    database_out: /var/lib/aide/aide.db.new.gz
-    verbose: 5
-    report_urls:
-      - file:/var/log/aide.log
-      - stdout
-    gzip_dbout: yes
-    group_definitions:
-      rhel7:
-        - { "name": "ALLXTRAHASHES", "expression": "sha1+rmd160+sha256+sha512+tiger" }
-        - { "name": "EVERYTHING", "expression": "R+ALLXTRAHASHES" }
-        - { "name": "NORMAL", "expression": "p+i+n+u+g+s+m+c+acl+selinux+xattrs+sha512" }
-        - { "name": "DIR", "expression": "p+i+n+u+g+acl+selinux+xattrs" }
-        - { "name": "PERMS", "expression": "p+u+g+acl+selinux+xattrs" }
-        - { "name": "LOG", "expression": "p+u+g+n+S+acl+selinux+xattrs" }
-        - { "name": "CONTENT", "expression": "sha512+ftype" }
-        - { "name": "CONTENT_EX", "expression": "sha512+ftype+p+u+g+n+acl+selinux+xattrs" }
-        - { "name": "DATAONLY", "expression": "p+n+u+g+s+acl+selinux+xattrs+sha512" }
-      rhel8:
-        - { "name": "FIPSR", "expression": "p+i+n+u+g+s+m+c+acl+selinux+xattrs+sha256" }
-        - { "name": "ALLXTRAHASHES", "expression": "sha1+rmd160+sha256+sha512+tiger" }
-        - { "name": "EVERYTHING", "expression": "R+ALLXTRAHASHES" }
-        - { "name": "NORMAL", "expression": "sha256" }
-        - { "name": "DIR", "expression": "p+i+n+u+g+acl+selinux+xattrs" }
-        - { "name": "PERMS", "expression": "p+u+g+acl+selinux+xattrs" }
-        - { "name": "STATIC", "expression": "p+u+g+acl+selinux+xattrs+i+n+b+c+ftype" }
-        - { "name": "LOG", "expression": "p+u+g+n+acl+selinux+ftype" }
-        - { "name": "CONTENT", "expression": "sha256+ftype" }
-        - { "name": "CONTENT_EX", "expression": "sha256+ftype+p+u+g+n+acl+selinux+xattrs" }
-        - { "name": "DATAONLY", "expression": "p+n+u+g+s+acl+selinux+xattrs+sha256" }
-    selections:
-      # Order matters here!
-      rhel7:
-        - { "pattern": '/boot/', "group": "CONTENT_EX" }
-        - { "pattern": '/bin/', "group": "CONTENT_EX" }
-        - { "pattern": '/sbin/', "group": "CONTENT_EX" }
-        - { "pattern": '/lib/', "group": "CONTENT_EX" }
-        - { "pattern": '/lib64/', "group": "CONTENT_EX" }
-        - { "pattern": '/opt/', "group": "CONTENT" }
-        - { "pattern": '/root/\..*', "group": "PERMS" }
-        - { "pattern": '/root/', "group": "CONTENT_EX" }
-        - { "pattern": '!/usr/src/', "group": "" }
-        - { "pattern": '!/usr/tmp/', "group": "" }
-        - { "pattern": '/usr/', "group": "CONTENT_EX" }
-        - { "pattern": '!/etc/mtab$', "group": "" }
-        - { "pattern": '!/etc/.*~', "group": "" }
-        - { "pattern": '/etc/hosts$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/host.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/hostname$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/issue$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/issue.net$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/protocols$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/services$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/localtime$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/alternatives/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/mime.types$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/terminfo/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/exports$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/fstab$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/passwd$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/group$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/gshadow$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/shadow$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/security/opasswd$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/skel/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/hosts.allow$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/hosts.deny$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/firewalld/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/NetworkManager/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/networks$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/dhcp/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/wpa_supplicant/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/resolv.conf$', "group": "DATAONLY" }
-        - { "pattern": '/etc/nscd.conf$', "group": "NORMAL" }
-        - { "pattern": '/etc/login.defs$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/libuser.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/var/log/faillog$', "group": "PERMS" }
-        - { "pattern": '/var/log/lastlog$', "group": "PERMS" }
-        - { "pattern": '/var/run/faillock/', "group": "PERMS" }
-        - { "pattern": '/etc/pam.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/security$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/securetty$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/polkit-1/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/sudo.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/sudoers$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/sudoers.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/profile$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/profile.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/bashrc$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/bash_completion.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/zprofile$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/zshrc$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/zlogin$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/zlogout$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/X11/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/shells$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/yum.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/yumex.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/yumex.profiles.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/yum/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/yum.repos.d/', "group": "CONTENT_EX" }
-        - { "pattern": '!/var/log/sa/', "group": "" }
-        - { "pattern": '!/var/log/aide.log', "group": "" }
-        - { "pattern": '/etc/audit/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/audisp/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/libaudit.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/aide.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/rsyslog.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/rsyslog.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/logrotate.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/logrotate.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/var/log/', "group": "LOG+ANF+ARF" }
-        - { "pattern": '/var/run/utmp$', "group": "LOG" }
-        - { "pattern": '/etc/pkcs11/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/pki/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/ssl/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/certmonger/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/systemd/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/sysconfig/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/rc.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/tmpfiles.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/machine-id$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/grub.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/grub2.cfg$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/dracut.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/dracut.conf.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/ld.so.cache$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/ld.so.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/ld.so.conf.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/sysctl.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/sysctl.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/modprobe.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/modules-load.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/depmod.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/udev/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/crypttab$', "group": "CONTENT_EX" }
-        - { "pattern": '/var/spool/at/', "group": "CONTENT" }
-        - { "pattern": '/etc/at.allow$', "group": "CONTENT" }
-        - { "pattern": '/etc/at.deny$', "group": "CONTENT" }
-        - { "pattern": '/etc/cron.allow$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/cron.deny$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/cron.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/cron.daily/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/cron.hourly/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/cron.monthly/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/cron.weekly/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/crontab$', "group": "CONTENT_EX" }
-        - { "pattern": '/var/spool/cron/root/', "group": "CONTENT" }
-        - { "pattern": '/etc/anacrontab$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/ntp.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/ntp/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/chrony.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/chrony.keys$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/aliases$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/aliases.db$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/postfix/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/mail.rc$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/mailcap$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/ssh/sshd_config$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/ssh/ssh_config$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/stunnel/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/vsftpd.conf$', "group": "CONTENT" }
-        - { "pattern": '/etc/vsftpd/', "group": "CONTENT" }
-        - { "pattern": '/etc/cups/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/cupshelpers/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/avahi/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/httpd/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/named/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/named.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/named.iscdlv.key$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/named.rfc1912.zones$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/named.root.key$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/xinetd.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/', "group": "PERMS" }
-        - { "pattern": '!/var/log/httpd/', "group": "" }
-      rhel8:
-        - { "pattern": '/boot', "group": "CONTENT_EX" }
-        - { "pattern": '/opt/', "group": "CONTENT" }
-        - { "pattern": '/root/\..*', "group": "PERMS" }
-        - { "pattern": '/root/', "group": "CONTENT_EX" }
-        - { "pattern": '!/usr/src/', "group": "" }
-        - { "pattern": '!/usr/tmp/', "group": "" }
-        - { "pattern": '/usr/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/hosts$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/host.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/hostname$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/issue$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/issue.net$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/protocols$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/services$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/localtime$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/alternatives/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/sysconfig', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/mime.types$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/terminfo/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/exports$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/fstab$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/passwd$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/group$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/gshadow$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/shadow$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/subgid$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/subuid$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/security/opasswd$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/skel/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/subuid$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/subgid$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/sssd/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/machine-id$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/swid/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/system-release-cpe$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/shells$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/tmux.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/xattr.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/hosts.allow$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/hosts.deny$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/firewalld/', "group": "CONTENT_EX" }
-        - { "pattern": '!/etc/NetworkManager/system-connections/', "group": "" }
-        - { "pattern": '/etc/NetworkManager/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/networks$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/dhcp/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/wpa_supplicant/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/resolv.conf$', "group": "DATAONLY" }
-        - { "pattern": '/etc/nscd.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/login.defs$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/libuser.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/var/log/faillog$', "group": "PERMS" }
-        - { "pattern": '/var/log/lastlog$', "group": "PERMS" }
-        - { "pattern": '/var/run/faillock/', "group": "PERMS" }
-        - { "pattern": '/etc/pam.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/security/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/securetty$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/polkit-1/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/sudo.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/sudoers', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/sudoers.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/profile$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/profile.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/bashrc$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/bash_completion.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/zprofile$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/zshrc$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/zlogin$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/zlogout$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/X11/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/dnf/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/yum.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/yum/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/yum.repos.d/', "group": "CONTENT_EX" }
-        - { "pattern": '!/var/log/sa', "group": "" }
-        - { "pattern": '!/var/log/aide.log', "group": "" }
-        - { "pattern": '/var/log/audit/', "group": "PERMS" }
-        - { "pattern": '/etc/audit/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/libaudit.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/aide.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/rsyslog.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/rsyslog.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/logrotate.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/logrotate.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/systemd/journald.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/var/log/', "group": "LOG+ANF+ARF" }
-        - { "pattern": '/var/run/utmp', "group": "LOG" }
-        - { "pattern": '/etc/pkcs11/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/pki/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/crypto-policies/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/certmonger/', "group": "CONTENT_EX" }
-        - { "pattern": '/var/lib/systemd/random-seed$', "group": "PERMS" }
-        - { "pattern": '/etc/systemd/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/rc.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/tmpfiles.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/default/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/grub.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/dracut.conf', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/dracut.conf.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/ld.so.cache$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/ld.so.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/ld.so.conf.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/ld.so.preload$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/sysctl.conf', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/sysctl.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/modprobe.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/modules-load.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/depmod.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/udev/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/crypttab$', "group": "CONTENT_EX" }
-        - { "pattern": '/var/spool/at/', "group": "CONTENT" }
-        - { "pattern": '/etc/at.allow$', "group": "CONTENT" }
-        - { "pattern": '/etc/at.deny$', "group": "CONTENT" }
-        - { "pattern": '/var/spool/anacron', "group": "CONTENT" }
-        - { "pattern": '/etc/anacrontab$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/cron.allow$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/cron.deny$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/cron.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/cron.daily/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/cron.hourly/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/cron.monthly/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/cron.weekly/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/crontab$', "group": "CONTENT_EX" }
-        - { "pattern": '/var/spool/cron/root/', "group": "CONTENT" }
-        - { "pattern": '/etc/chrony.conf', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/chrony.keys$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/aliases$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/aliases.db$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/postfix/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/ssh/sshd_config', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/ssh/ssh_config', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/stunnel/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/cups/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/cupshelpers/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/avahi/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/httpd/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/named/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/named.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/named.iscdlv.key$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/named.rfc1912.zones$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/named.root.key$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/xinetd.conf$', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/xinetd.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/ipsec.conf', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/ipsec.secrets', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/ipsec.d/', "group": "CONTENT_EX" }
-        - { "pattern": '/etc/usbguard/', "group": "CONTENT_EX" }
-        - { "pattern": '!/etc/mtab$', "group": "" }
-        - { "pattern": '!/etc/.*~', "group": "" }
-        - { "pattern": '/etc/', "group": "PERMS" }
-        - { "pattern": '!/var/log/and-httpd', "group": "" }
-        - { "pattern": '/root/\..*', "group": "PERMS" }
-        - { "pattern": '!/root/.xauth*', "group": "" }
+aide_packages:
+  - aide
+  - crontabs
+
+aide_no_nfs: true
+
+aide_cron_name: "AIDE Check"
+aide_cron_minute: "*"
+aide_cron_hour: "*"
+aide_cron_day: "*"
+aide_cron_month: "*"
+aide_cron_weekday: "*"
+aide_cron_special_time: weekly
+aide_cron_disabled: false
+aide_cron_state: present
+aide_cron_user: root
+aide_cron_job: aide --check
+
+aide_database_init: true
+
+
+# There should be a matcthing list in group_definitions and selections.
+aide_config_distro_version: "rhel{{ ansible_facts['distribution_major_version'] }}"
+
+aide_config_template_src: etc/aide.conf.j2
+aide_config_template_dest: /etc/aide.conf
+aide_config_template_owner: root
+aide_config_template_group: root
+aide_config_template_mode: '0600'
+aide_config_template_backup: true
+aide_config_template_validate: "aide --config-check --config=%s"
+
+# These defaults aim to reproduce the default aide.conf deployed with the
+# aide package.
+
+aide_config_database: /var/lib/aide/aide.db.gz
+aide_config_database_out: /var/lib/aide/aide.db.new.gz
+aide_config_verbose: 5
+aide_config_report_urls:
+  - file:/var/log/aide.log
+  - stdout
+aide_config_gzip_dbout: yes
+aide_config_group_definitions:
+  rhel7:
+    - { "name": "ALLXTRAHASHES", "expression": "sha1+rmd160+sha256+sha512+tiger" }
+    - { "name": "EVERYTHING", "expression": "R+ALLXTRAHASHES" }
+    - { "name": "NORMAL", "expression": "p+i+n+u+g+s+m+c+acl+selinux+xattrs+sha512" }
+    - { "name": "DIR", "expression": "p+i+n+u+g+acl+selinux+xattrs" }
+    - { "name": "PERMS", "expression": "p+u+g+acl+selinux+xattrs" }
+    - { "name": "LOG", "expression": "p+u+g+n+S+acl+selinux+xattrs" }
+    - { "name": "CONTENT", "expression": "sha512+ftype" }
+    - { "name": "CONTENT_EX", "expression": "sha512+ftype+p+u+g+n+acl+selinux+xattrs" }
+    - { "name": "DATAONLY", "expression": "p+n+u+g+s+acl+selinux+xattrs+sha512" }
+  rhel8:
+    - { "name": "FIPSR", "expression": "p+i+n+u+g+s+m+c+acl+selinux+xattrs+sha256" }
+    - { "name": "ALLXTRAHASHES", "expression": "sha1+rmd160+sha256+sha512+tiger" }
+    - { "name": "EVERYTHING", "expression": "R+ALLXTRAHASHES" }
+    - { "name": "NORMAL", "expression": "sha256" }
+    - { "name": "DIR", "expression": "p+i+n+u+g+acl+selinux+xattrs" }
+    - { "name": "PERMS", "expression": "p+u+g+acl+selinux+xattrs" }
+    - { "name": "STATIC", "expression": "p+u+g+acl+selinux+xattrs+i+n+b+c+ftype" }
+    - { "name": "LOG", "expression": "p+u+g+n+acl+selinux+ftype" }
+    - { "name": "CONTENT", "expression": "sha256+ftype" }
+    - { "name": "CONTENT_EX", "expression": "sha256+ftype+p+u+g+n+acl+selinux+xattrs" }
+    - { "name": "DATAONLY", "expression": "p+n+u+g+s+acl+selinux+xattrs+sha256" }
+aide_config_group_selections:
+  # Order matters here!
+  rhel7:
+    - { "pattern": '/boot/', "group": "CONTENT_EX" }
+    - { "pattern": '/bin/', "group": "CONTENT_EX" }
+    - { "pattern": '/sbin/', "group": "CONTENT_EX" }
+    - { "pattern": '/lib/', "group": "CONTENT_EX" }
+    - { "pattern": '/lib64/', "group": "CONTENT_EX" }
+    - { "pattern": '/opt/', "group": "CONTENT" }
+    - { "pattern": '/root/\..*', "group": "PERMS" }
+    - { "pattern": '/root/', "group": "CONTENT_EX" }
+    - { "pattern": '!/usr/src/', "group": "" }
+    - { "pattern": '!/usr/tmp/', "group": "" }
+    - { "pattern": '/usr/', "group": "CONTENT_EX" }
+    - { "pattern": '!/etc/mtab$', "group": "" }
+    - { "pattern": '!/etc/.*~', "group": "" }
+    - { "pattern": '/etc/hosts$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/host.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/hostname$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/issue$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/issue.net$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/protocols$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/services$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/localtime$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/alternatives/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/mime.types$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/terminfo/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/exports$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/fstab$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/passwd$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/group$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/gshadow$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/shadow$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/security/opasswd$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/skel/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/hosts.allow$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/hosts.deny$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/firewalld/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/NetworkManager/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/networks$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/dhcp/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/wpa_supplicant/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/resolv.conf$', "group": "DATAONLY" }
+    - { "pattern": '/etc/nscd.conf$', "group": "NORMAL" }
+    - { "pattern": '/etc/login.defs$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/libuser.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/var/log/faillog$', "group": "PERMS" }
+    - { "pattern": '/var/log/lastlog$', "group": "PERMS" }
+    - { "pattern": '/var/run/faillock/', "group": "PERMS" }
+    - { "pattern": '/etc/pam.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/security$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/securetty$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/polkit-1/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/sudo.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/sudoers$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/sudoers.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/profile$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/profile.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/bashrc$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/bash_completion.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/zprofile$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/zshrc$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/zlogin$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/zlogout$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/X11/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/shells$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/yum.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/yumex.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/yumex.profiles.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/yum/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/yum.repos.d/', "group": "CONTENT_EX" }
+    - { "pattern": '!/var/log/sa/', "group": "" }
+    - { "pattern": '!/var/log/aide.log', "group": "" }
+    - { "pattern": '/etc/audit/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/audisp/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/libaudit.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/aide.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/rsyslog.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/rsyslog.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/logrotate.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/logrotate.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/var/log/', "group": "LOG+ANF+ARF" }
+    - { "pattern": '/var/run/utmp$', "group": "LOG" }
+    - { "pattern": '/etc/pkcs11/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/pki/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/ssl/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/certmonger/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/systemd/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/sysconfig/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/rc.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/tmpfiles.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/machine-id$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/grub.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/grub2.cfg$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/dracut.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/dracut.conf.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/ld.so.cache$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/ld.so.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/ld.so.conf.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/sysctl.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/sysctl.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/modprobe.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/modules-load.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/depmod.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/udev/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/crypttab$', "group": "CONTENT_EX" }
+    - { "pattern": '/var/spool/at/', "group": "CONTENT" }
+    - { "pattern": '/etc/at.allow$', "group": "CONTENT" }
+    - { "pattern": '/etc/at.deny$', "group": "CONTENT" }
+    - { "pattern": '/etc/cron.allow$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/cron.deny$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/cron.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/cron.daily/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/cron.hourly/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/cron.monthly/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/cron.weekly/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/crontab$', "group": "CONTENT_EX" }
+    - { "pattern": '/var/spool/cron/root/', "group": "CONTENT" }
+    - { "pattern": '/etc/anacrontab$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/ntp.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/ntp/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/chrony.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/chrony.keys$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/aliases$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/aliases.db$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/postfix/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/mail.rc$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/mailcap$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/ssh/sshd_config$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/ssh/ssh_config$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/stunnel/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/vsftpd.conf$', "group": "CONTENT" }
+    - { "pattern": '/etc/vsftpd/', "group": "CONTENT" }
+    - { "pattern": '/etc/cups/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/cupshelpers/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/avahi/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/httpd/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/named/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/named.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/named.iscdlv.key$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/named.rfc1912.zones$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/named.root.key$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/xinetd.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/', "group": "PERMS" }
+    - { "pattern": '!/var/log/httpd/', "group": "" }
+  rhel8:
+    - { "pattern": '/boot', "group": "CONTENT_EX" }
+    - { "pattern": '/opt/', "group": "CONTENT" }
+    - { "pattern": '/root/\..*', "group": "PERMS" }
+    - { "pattern": '/root/', "group": "CONTENT_EX" }
+    - { "pattern": '!/usr/src/', "group": "" }
+    - { "pattern": '!/usr/tmp/', "group": "" }
+    - { "pattern": '/usr/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/hosts$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/host.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/hostname$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/issue$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/issue.net$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/protocols$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/services$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/localtime$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/alternatives/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/sysconfig', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/mime.types$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/terminfo/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/exports$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/fstab$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/passwd$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/group$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/gshadow$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/shadow$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/subgid$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/subuid$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/security/opasswd$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/skel/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/subuid$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/subgid$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/sssd/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/machine-id$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/swid/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/system-release-cpe$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/shells$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/tmux.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/xattr.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/hosts.allow$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/hosts.deny$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/firewalld/', "group": "CONTENT_EX" }
+    - { "pattern": '!/etc/NetworkManager/system-connections/', "group": "" }
+    - { "pattern": '/etc/NetworkManager/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/networks$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/dhcp/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/wpa_supplicant/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/resolv.conf$', "group": "DATAONLY" }
+    - { "pattern": '/etc/nscd.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/login.defs$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/libuser.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/var/log/faillog$', "group": "PERMS" }
+    - { "pattern": '/var/log/lastlog$', "group": "PERMS" }
+    - { "pattern": '/var/run/faillock/', "group": "PERMS" }
+    - { "pattern": '/etc/pam.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/security/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/securetty$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/polkit-1/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/sudo.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/sudoers', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/sudoers.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/profile$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/profile.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/bashrc$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/bash_completion.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/zprofile$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/zshrc$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/zlogin$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/zlogout$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/X11/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/dnf/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/yum.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/yum/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/yum.repos.d/', "group": "CONTENT_EX" }
+    - { "pattern": '!/var/log/sa', "group": "" }
+    - { "pattern": '!/var/log/aide.log', "group": "" }
+    - { "pattern": '/var/log/audit/', "group": "PERMS" }
+    - { "pattern": '/etc/audit/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/libaudit.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/aide.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/rsyslog.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/rsyslog.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/logrotate.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/logrotate.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/systemd/journald.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/var/log/', "group": "LOG+ANF+ARF" }
+    - { "pattern": '/var/run/utmp', "group": "LOG" }
+    - { "pattern": '/etc/pkcs11/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/pki/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/crypto-policies/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/certmonger/', "group": "CONTENT_EX" }
+    - { "pattern": '/var/lib/systemd/random-seed$', "group": "PERMS" }
+    - { "pattern": '/etc/systemd/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/rc.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/tmpfiles.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/default/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/grub.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/dracut.conf', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/dracut.conf.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/ld.so.cache$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/ld.so.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/ld.so.conf.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/ld.so.preload$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/sysctl.conf', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/sysctl.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/modprobe.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/modules-load.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/depmod.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/udev/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/crypttab$', "group": "CONTENT_EX" }
+    - { "pattern": '/var/spool/at/', "group": "CONTENT" }
+    - { "pattern": '/etc/at.allow$', "group": "CONTENT" }
+    - { "pattern": '/etc/at.deny$', "group": "CONTENT" }
+    - { "pattern": '/var/spool/anacron', "group": "CONTENT" }
+    - { "pattern": '/etc/anacrontab$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/cron.allow$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/cron.deny$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/cron.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/cron.daily/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/cron.hourly/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/cron.monthly/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/cron.weekly/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/crontab$', "group": "CONTENT_EX" }
+    - { "pattern": '/var/spool/cron/root/', "group": "CONTENT" }
+    - { "pattern": '/etc/chrony.conf', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/chrony.keys$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/aliases$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/aliases.db$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/postfix/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/ssh/sshd_config', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/ssh/ssh_config', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/stunnel/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/cups/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/cupshelpers/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/avahi/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/httpd/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/named/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/named.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/named.iscdlv.key$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/named.rfc1912.zones$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/named.root.key$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/xinetd.conf$', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/xinetd.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/ipsec.conf', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/ipsec.secrets', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/ipsec.d/', "group": "CONTENT_EX" }
+    - { "pattern": '/etc/usbguard/', "group": "CONTENT_EX" }
+    - { "pattern": '!/etc/mtab$', "group": "" }
+    - { "pattern": '!/etc/.*~', "group": "" }
+    - { "pattern": '/etc/', "group": "PERMS" }
+    - { "pattern": '!/var/log/and-httpd', "group": "" }
+    - { "pattern": '/root/\..*', "group": "PERMS" }
+    - { "pattern": '!/root/.xauth*', "group": "" }

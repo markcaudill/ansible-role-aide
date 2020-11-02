@@ -3,38 +3,38 @@
 
 - name: ENSURE PACKAGES ARE INSTALLED
   yum:
-    name: "{{ aide['packages'] }}"
+    name: "{{ aide_packages }}"
   tags: aide
 
 - name: ENSURE CONFIGURATION FILE IS PRESENT AND UP TO DATE
   template:
-    src: "{{ aide['config']['template']['src'] }}"
-    dest: "{{ aide['config']['template']['dest'] }}"
-    owner: "{{ aide['config']['template']['owner'] }}"
-    group: "{{ aide['config']['template']['group'] }}"
-    mode: "{{ aide['config']['template']['mode'] }}"
-    backup: "{{ aide['config']['template']['backup'] }}"
-    validate: "{{ aide['config']['template']['validate'] }}"
+    src: "{{ aide_config_template_src }}"
+    dest: "{{ aide_config_template_dest }}"
+    owner: "{{ aide_config_template_owner }}"
+    group: "{{ aide_config_template_group }}"
+    mode: "{{ aide_config_template_mode }}"
+    backup: "{{ aide_config_template_backup }}"
+    validate: "{{ aide_config_template_validate }}"
   tags: aide
 
 - name: ENSURE INITIAL AIDE DATABASE IS INITIALIZED
-  shell: "aide --init -V0 && mv {{ aide['config']['database_out'] }} {{ aide['config']['database'] }}"
+  shell: "aide --init -V0 && mv {{ aide_config_database_out }} {{ aide_config_database }}"
   args:
-    creates: "{{ aide['config']['database'] }}"
-  when: aide['database_init']
+    creates: "{{ aide_config_database }}"
+  when: aide_database_init
   tags: aide
 
 - name: ENSURE AIDE IS SCHEDULED TO RUN REGULARLY
   cron:
-    name: "{{ aide['cron']['name'] }}"
-    minute: "{{ aide['cron']['minute'] }}"
-    hour: "{{ aide['cron']['hour'] }}"
-    day: "{{ aide['cron']['day'] }}"
-    month: "{{ aide['cron']['month'] }}"
-    weekday: "{{ aide['cron']['weekday'] }}"
-    special_time: "{{ aide['cron']['special_time'] }}"
-    disabled: "{{ aide['cron']['disabled'] }}"
-    state: "{{ aide['cron']['state'] }}"
-    user: "{{ aide['cron']['user'] }}"
-    job: "{{ aide['cron']['job'] }}"
+    name: "{{ aide_cron_name }}"
+    minute: "{{ aide_cron_minute }}"
+    hour: "{{ aide_cron_hour }}"
+    day: "{{ aide_cron_day }}"
+    month: "{{ aide_cron_month }}"
+    weekday: "{{ aide_cron_weekday }}"
+    special_time: "{{ aide_cron_special_time }}"
+    disabled: "{{ aide_cron_disabled }}"
+    state: "{{ aide_cron_state }}"
+    user: "{{ aide_cron_user }}"
+    job: "{{ aide_cron_job }}"
   tags: aide
