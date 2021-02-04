@@ -1,7 +1,7 @@
 galaxy_info:
   author: Mark Caudill
   description: This role configures a host to be regularly monitored by AIDE
-  company:
+  role_name: aide
 
   # If the issue tracker for your role is not on github, uncomment the
   # next line and provide a value
